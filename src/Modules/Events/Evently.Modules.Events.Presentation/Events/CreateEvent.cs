@@ -1,4 +1,6 @@
 ﻿using Evently.Modules.Events.Application.Events.CreateEvent;
+using Evently.Modules.Events.Domain.Abstractions;
+using Evently.Modules.Events.Presentation.ApiResults;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -12,20 +14,22 @@ public static class CreateEvent
     {
         app.MapPost("events", async (Request request, ISender mediator) =>
             {
-                var command = new CreateEventCommand(
+                Result<Guid> result = await mediator.Send(new CreateEventCommand(
+                    request.CategoryId,
                     request.Title,
                     request.Description,
                     request.Location,
                     request.StartsAtUtc,
-                    request.EndsAtUtc);
-                Guid id = await mediator.Send(command);
-            return Results.Ok(id);
-        })
-        .WithTags(Tags.Events);
+                    request.EndsAtUtc));
+
+                return result.Match(Results.Ok, ApiResults.ApiResults.Problem);
+            })
+            .WithTags(Tags.Events);
     }
 
     internal sealed class Request
     {
+        public Guid CategoryId { get; set; }
         public string Title { get; set; }
 
         public string Description { get; set; }

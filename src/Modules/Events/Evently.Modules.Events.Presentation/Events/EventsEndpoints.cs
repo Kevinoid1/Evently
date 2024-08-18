@@ -8,5 +8,9 @@ public static class EventsEndpoints
     {
         CreateEvent.MapEndpoint(app);
         GetEvent.MapEndpoint(app);
+        CancelEvent.MapEndpoint(app);
+        RescheduleEvent.MapEndpoint(app);
+        PublishEvent.MapEndpoint(app);
+        GetEvents.MapEndpoint(app);
     }
 }

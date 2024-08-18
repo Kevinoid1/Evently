@@ -1,4 +1,4 @@
-﻿namespace Evently.Modules.Events.Domain.Events;
+﻿namespace Evently.Modules.Events.Domain.Abstractions;
 
 public record Error
 {
@@ -8,7 +8,7 @@ public record Error
 
    
     
-    private Error(string code, string description, ErrorType type)
+    protected Error(string code, string description, ErrorType type)
     {
         Code = code;
         Description = description;

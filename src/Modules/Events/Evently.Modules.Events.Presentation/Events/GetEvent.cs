@@ -1,22 +1,24 @@
 ﻿using Evently.Modules.Events.Application.Events.GetEvent;
+using Evently.Modules.Events.Domain.Abstractions;
+using Evently.Modules.Events.Presentation.ApiResults;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using EventResponse = Evently.Modules.Events.Application.Events.GetEvent.EventResponse;
 
 namespace Evently.Modules.Events.Presentation.Events;
 
-public static class GetEvent
+internal static class GetEvent
 {
     public static void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("events/{id}", async (Guid id, ISender mediator) =>
             {
-                var query = new GetEventQuery(id);
-                EventResponse? @event= await mediator.Send(query);
+                Result<EventResponse> result = await mediator.Send(new GetEventQuery(id));
 
-                return @event is null ? Results.NotFound() : Results.Ok(@event);
+                return result.Match(Results.Ok, ApiResults.ApiResults.Problem);
             })
-        .WithTags(Tags.Events);
+            .WithTags(Tags.Events);
     }
 }
