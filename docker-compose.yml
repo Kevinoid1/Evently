@@ -8,8 +8,8 @@ services:
       context: .
       dockerfile: src/API/Evently.Api/Dockerfile
     ports:
-      - 5000:8080
-      - 5001:8081
+      - "5000:8080"
+      - "5001:8081"
     depends_on:
       - evently.database
 
@@ -23,4 +23,20 @@ services:
     volumes:
       - ./.containers/db:/var/lib/postgresql/data
     ports:
-      - 5433:5432
+      - "5433:5432"
+  
+  evently.seq:
+    image: datalust/seq:latest
+    container_name: Evently.Seq
+    environment:
+      - ACCEPT_EULA=Y
+    ports:
+      - "5341:5341"
+      - "8002:80"
+  
+  evently.redis:
+    image: redis:latest
+    container_name: Evently.Redis
+    restart: always
+    ports:
+      - "6379:6379"
