@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Routing;
 
 namespace Evently.Modules.Events.Presentation.Events;
 
-internal class CancelEvent : IEndpoint
+internal sealed class CancelEvent : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {

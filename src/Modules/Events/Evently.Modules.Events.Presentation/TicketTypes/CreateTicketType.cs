@@ -1,4 +1,5 @@
-﻿using Evently.Common.Domain.Abstractions;
+﻿using System.Diagnostics.CodeAnalysis;
+using Evently.Common.Domain.Abstractions;
 using Evently.Common.Presentation.ApiResults;
 using Evently.Common.Presentation.Endpoints;
 using Evently.Modules.Events.Application.TicketTypes.CreateTicketType;
@@ -9,7 +10,7 @@ using Microsoft.AspNetCore.Routing;
 
 namespace Evently.Modules.Events.Presentation.TicketTypes;
 
-internal class CreateTicketType : IEndpoint
+internal sealed class CreateTicketType : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
@@ -27,6 +28,7 @@ internal class CreateTicketType : IEndpoint
         .WithTags(Tags.TicketTypes);
     }
 
+    [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
     internal sealed class Request
     {
         public Guid EventId { get; init; }

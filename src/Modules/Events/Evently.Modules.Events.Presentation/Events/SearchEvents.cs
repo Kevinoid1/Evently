@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Routing;
 
 namespace Evently.Modules.Events.Presentation.Events;
 
-internal class SearchEvents : IEndpoint
+internal sealed class SearchEvents : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {

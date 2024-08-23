@@ -10,7 +10,7 @@ using EventResponse = Evently.Modules.Events.Application.Events.GetEvent.EventRe
 
 namespace Evently.Modules.Events.Presentation.Events;
 
-internal class GetEvent : IEndpoint
+internal sealed class GetEvent : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {

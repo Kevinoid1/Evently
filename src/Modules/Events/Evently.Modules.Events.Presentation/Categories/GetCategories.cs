@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Routing;
 
 namespace Evently.Modules.Events.Presentation.Categories;
 
-internal class GetCategories : IEndpoint
+internal sealed class GetCategories : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {

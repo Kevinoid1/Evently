@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Routing;
 
 namespace Evently.Modules.Events.Presentation.Categories;
 
-internal class GetCategory : IEndpoint
+internal sealed class GetCategory : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {

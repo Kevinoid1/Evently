@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Routing;
 
 namespace Evently.Modules.Events.Presentation.TicketTypes;
 
-internal class ChangeTicketTypePrice : IEndpoint
+internal sealed class ChangeTicketTypePrice : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
@@ -24,6 +24,7 @@ internal class ChangeTicketTypePrice : IEndpoint
 
     internal sealed class Request
     {
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public decimal Price { get; init; }
     }
 }
