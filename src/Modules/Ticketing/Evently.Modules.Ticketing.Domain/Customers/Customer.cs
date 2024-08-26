@@ -15,15 +15,17 @@ public sealed class Customer : Entity
     public string FirstName { get; private set; }
 
     public string LastName { get; private set; }
+    public string IdentityId { get; private set; }
 
-    public static Customer Create(Guid id, string email, string firstName, string lastName)
+    public static Customer Create(Guid id, string email, string firstName, string lastName, string identityId)
     {
         return new Customer
         {
             Id = id,
             Email = email,
             FirstName = firstName,
-            LastName = lastName
+            LastName = lastName,
+            IdentityId = identityId
         };
     }
 

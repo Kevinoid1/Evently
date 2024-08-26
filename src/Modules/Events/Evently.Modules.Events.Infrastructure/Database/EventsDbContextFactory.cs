@@ -4,11 +4,11 @@ using Microsoft.Extensions.Configuration;
 
 namespace Evently.Modules.Events.Infrastructure.Database;
 
-internal sealed class EventsDbContextFactory(IConfiguration configuration) : IDesignTimeDbContextFactory<EventsDbContext>
+internal sealed class EventsDbContextFactory : IDesignTimeDbContextFactory<EventsDbContext>
 {
     public EventsDbContext CreateDbContext(string[] args)
     {
-        string connectionString = configuration.GetConnectionString("Database")!;
+        string connectionString = "Host=evently.database;Port=5432;Database=evently;Username=postgres;Password=sqluser10$;Include Error Detail=true";
         DbContextOptionsBuilder<EventsDbContext> optionBuilder = new();
 
         optionBuilder.UseNpgsql(connectionString);

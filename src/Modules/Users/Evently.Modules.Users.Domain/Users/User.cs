@@ -1,9 +1,11 @@
-﻿using Evently.Common.Domain.Abstractions;
+﻿using System.Security.AccessControl;
+using Evently.Common.Domain.Abstractions;
 
 namespace Evently.Modules.Users.Domain.Users;
 
 public sealed class User : Entity
 {
+    private readonly List<Role> _roles = new();
     private User()
     {
     }
@@ -15,8 +17,11 @@ public sealed class User : Entity
     public string FirstName { get; private set; }
 
     public string LastName { get; private set; }
+    public string IdentityId { get; private set; }
 
-    public static User Create(string email, string firstName, string lastName)
+    public IReadOnlyList<Role> Roles => _roles.ToList().AsReadOnly();
+
+    public static User Create(string email, string firstName, string lastName, string identityId)
     {
         var user = new User
         {
@@ -24,8 +29,10 @@ public sealed class User : Entity
             Email = email,
             FirstName = firstName,
             LastName = lastName,
+            IdentityId = identityId
         };
 
+        user._roles.Add(Role.Member);
         user.Raise(new UserRegisteredDomainEvent(user.Id));
 
         return user;

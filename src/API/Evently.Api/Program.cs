@@ -4,12 +4,17 @@ using Evently.Common.Application;
 using Evently.Common.Infrastructure;
 using Evently.Common.Presentation.Endpoints;
 using Evently.Modules.Events.Infrastructure;
+using Evently.Modules.Ticketing.Infrastructure;
+using Evently.Modules.Users.Infrastructure;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
 
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+// register configuration files
+builder.Configuration.AddModuleConfiguration(["events", "users", "ticketing"]);
 
 builder.Host.UseSerilog((context, loggerConfiguration) =>
 {
@@ -26,17 +31,19 @@ builder.Services.AddSwaggerGen(opt =>
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
-// register configuration files
-builder.Configuration.AddModuleConfiguration(["events"]);
-
 // register cross-cutting concerns
 string databaseConnectionString = builder.Configuration.GetConnectionString("Database")!;
 string redisConnectionString = builder.Configuration.GetConnectionString("Cache")!;
 builder.Services
     .AddApplication([
-    Evently.Modules.Events.Application.AssemblyMarker.Assembly
+    Evently.Modules.Events.Application.AssemblyMarker.Assembly,
+    Evently.Modules.Users.Application.AssemblyMarker.Assembly,
+    Evently.Modules.Ticketing.Application.AssemblyMarker.Assembly
 ])
-    .AddInfrastructure(databaseConnectionString,
+    .AddInfrastructure([
+        TicketingModule.ConfigureConsumers
+    ],
+        databaseConnectionString,
         redisConnectionString
         );
 
@@ -48,6 +55,8 @@ builder.Services.AddHealthChecks()
 
 // register specific modules
 builder.Services.AddEventsModule(builder.Configuration);
+builder.Services.AddUsersModule(builder.Configuration);
+builder.Services.AddTicketingModule(builder.Configuration);
 
 WebApplication app = builder.Build();
 

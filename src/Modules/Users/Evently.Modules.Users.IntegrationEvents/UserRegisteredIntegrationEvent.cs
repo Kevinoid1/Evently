@@ -10,13 +10,15 @@ public sealed class UserRegisteredIntegrationEvent : IntegrationEvent
         Guid userId,
         string email,
         string firstName,
-        string lastName)
+        string lastName,
+        string identityId)
         : base(id, occurredOnUtc)
     {
         UserId = userId;
         Email = email;
         FirstName = firstName;
         LastName = lastName;
+        IdentityId = identityId;
     }
 
     public Guid UserId { get; init; }
@@ -26,4 +28,5 @@ public sealed class UserRegisteredIntegrationEvent : IntegrationEvent
     public string FirstName { get; init; }
 
     public string LastName { get; init; }
+    public string IdentityId { get; init; }
 }

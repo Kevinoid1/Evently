@@ -40,3 +40,28 @@ services:
     restart: always
     ports:
       - "6379:6379"
+        
+  
+  evently.identity:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: Evently.Identity
+#    build:
+#      context: .
+#      dockerfile: src/Common/Evently.Common.Infrastructure/Dockerfile
+    command: start-dev --import-realm
+    environment:
+      - KC_DB=postgres
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_HEALTH_ENABLED=true
+      - KC_METRICS_ENABLED=true
+    env_file:
+      - ./src/Common/Evently.Common.Infrastructure/env/keycloak.env
+    volumes:
+      - ./.files:/opt/keycloak/data/import
+      - ./.containers/identity:/opt/keycloak/data
+    ports:
+      - "18080:8080"
+    depends_on:
+      - evently.database
+    

@@ -13,6 +13,11 @@ internal sealed class UserRepository(UsersDbContext context) : IUserRepository
 
     public void Insert(User user)
     {
+        foreach (Role userRole in user.Roles)
+        {
+            context.Attach(userRole); // this makes entity framework not to insert the role into the role table again
+        }
+
         context.Users.Add(user);
     }
 }
