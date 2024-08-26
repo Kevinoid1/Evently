@@ -2,6 +2,8 @@ using Evently.Common.Application.Caching;
 using Evently.Common.Application.Clock;
 using Evently.Common.Application.Data;
 using Evently.Common.Application.EventBus;
+using Evently.Common.Infrastructure.Authentication;
+using Evently.Common.Infrastructure.Authorization;
 using Evently.Common.Infrastructure.Caching;
 using Evently.Common.Infrastructure.Clock;
 using Evently.Common.Infrastructure.Data;
@@ -18,6 +20,12 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, Action<IRegistrationConfigurator>[] configurators, string databaseConnectionString, string redisConnectionString)
     {
+        services.AddHttpContextAccessor();
+        
+        // setup authentication and authorization
+        services.AddAuthenticationInternal()
+            .AddAuthorizationInternal();
+        
         NpgsqlDataSource dataSource = new NpgsqlDataSourceBuilder(databaseConnectionString).Build();
         
         services.TryAddSingleton(dataSource);
