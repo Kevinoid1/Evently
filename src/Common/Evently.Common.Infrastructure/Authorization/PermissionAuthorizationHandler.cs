@@ -13,11 +13,11 @@ internal sealed class PermissionAuthorizationHandler : AuthorizationHandler<Perm
         {
             context.Succeed(requirement);
         }
-
+        
         /*if (!requiredPermissions.Except(permissions).Any())
             context.Succeed(requirement)
         */
-
+        
         return Task.CompletedTask;
     }
 }

@@ -18,7 +18,7 @@ internal sealed class CancelEvent : IEndpoint
                 Result result = await mediator.Send(new CancelEventCommand(id));
                 return result.Match(Results.NoContent, ApiResults.Problem);
             })
-            .RequireAuthorization()
+            .RequireAuthorization(Permissions.ModifyEvents)
             .WithTags(Tags.Events);
     }
 }

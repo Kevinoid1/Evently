@@ -10,6 +10,7 @@ internal sealed class JwtBearerConfigureOptions(IConfiguration configuration) : 
     public void Configure(JwtBearerOptions options)
     {
         configuration.GetSection(ConfigurationSectionName).Bind(options);
+        options.EventsType = typeof(HandleFailedAuthenticationEvent);
     }
 
     public void Configure(string? name, JwtBearerOptions options)

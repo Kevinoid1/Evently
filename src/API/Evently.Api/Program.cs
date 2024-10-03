@@ -3,6 +3,7 @@ using Evently.Api.Middlewares;
 using Evently.Common.Application;
 using Evently.Common.Infrastructure;
 using Evently.Common.Presentation.Endpoints;
+using Evently.Modules.Attendance.Infrastructure;
 using Evently.Modules.Events.Infrastructure;
 using Evently.Modules.Ticketing.Infrastructure;
 using Evently.Modules.Users.Infrastructure;
@@ -14,7 +15,7 @@ using Serilog;
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // register configuration files
-builder.Configuration.AddModuleConfiguration(["events", "users", "ticketing"]);
+builder.Configuration.AddModuleConfiguration(["events", "users", "ticketing", "attendance"]);
 
 builder.Host.UseSerilog((context, loggerConfiguration) =>
 {
@@ -38,7 +39,8 @@ builder.Services
     .AddApplication([
     Evently.Modules.Events.Application.AssemblyMarker.Assembly,
     Evently.Modules.Users.Application.AssemblyMarker.Assembly,
-    Evently.Modules.Ticketing.Application.AssemblyMarker.Assembly
+    Evently.Modules.Ticketing.Application.AssemblyMarker.Assembly,
+    Evently.Modules.Attendance.Application.AssemblyMarker.Assembly,
 ])
     .AddInfrastructure([
         TicketingModule.ConfigureConsumers
@@ -58,6 +60,7 @@ builder.Services.AddHealthChecks()
 builder.Services.AddEventsModule(builder.Configuration);
 builder.Services.AddUsersModule(builder.Configuration);
 builder.Services.AddTicketingModule(builder.Configuration);
+builder.Services.AddAttendanceModule(builder.Configuration);
 
 WebApplication app = builder.Build();
 
@@ -71,6 +74,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseSerilogRequestLogging();
 app.UseExceptionHandler();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapHealthChecks("health", new HealthCheckOptions
 {
