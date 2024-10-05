@@ -12,6 +12,7 @@ using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
+using Quartz;
 using StackExchange.Redis;
 
 namespace Evently.Common.Infrastructure;
@@ -29,14 +30,15 @@ public static class DependencyInjection
         NpgsqlDataSource dataSource = new NpgsqlDataSourceBuilder(databaseConnectionString).Build();
         
         services.TryAddSingleton(dataSource);
-        services.AddScoped<IDbConnectionFactory, DbConnectionFactory>();
+        services.TryAddScoped<IDbConnectionFactory, DbConnectionFactory>();
         services.TryAddSingleton<IDateTimeProvider, DateTimeProvider>();
         
-        services.TryAddSingleton<PublishDomainEventsInterceptor>();
+        services.TryAddSingleton<InsertOutboxMessagesInterceptor>();
 
         services
             .ConfigureCaching(redisConnectionString)
-            .ConfigureMassTransit(configurators);
+            .ConfigureMassTransit(configurators)
+            .RegisterQuartzServices();
         
         return services;
     }
@@ -79,6 +81,15 @@ public static class DependencyInjection
                 cfg.ConfigureEndpoints(context);
             });
         });
+
+        return services;
+    }
+
+    private static IServiceCollection RegisterQuartzServices(this IServiceCollection services)
+    {
+        services.AddQuartz();
+        
+        services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
 
         return services;
     }

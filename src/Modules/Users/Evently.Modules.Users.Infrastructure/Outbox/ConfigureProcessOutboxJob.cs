@@ -1,0 +1,19 @@
+using Microsoft.Extensions.Options;
+using Quartz;
+
+namespace Evently.Modules.Users.Infrastructure.Outbox;
+
+internal sealed class ConfigureProcessOutboxJob(IOptions<OutboxOptions> outboxOptions) : IConfigureOptions<QuartzOptions>
+{
+    private readonly OutboxOptions _outboxOptions = outboxOptions.Value;
+
+    public void Configure(QuartzOptions options)
+    {
+        string jobName = typeof(ProcessOutboxJob).FullName!;
+
+        options.AddJob<ProcessOutboxJob>(builder => builder.WithIdentity(jobName))
+            .AddTrigger(triggerBuilder => triggerBuilder.ForJob(jobName)
+                .WithSimpleSchedule(schedule => schedule.WithIntervalInSeconds(_outboxOptions.IntervalInSeconds)
+                    .RepeatForever()));
+    }
+}
