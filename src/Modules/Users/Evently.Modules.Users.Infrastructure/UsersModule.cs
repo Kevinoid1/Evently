@@ -24,9 +24,10 @@ public static class UsersModule
         IConfiguration configuration)
     {
         services
-            .ConfigureBackgroundJobs(configuration)
             .ConfigureKeyCloak(configuration)
             .AddInfrastructure(configuration);
+
+        services.ConfigureBackgroundJobs(configuration);
 
         services.AddEndpoints(Presentation.AssemblyMarker.Assembly);
 
@@ -69,12 +70,10 @@ public static class UsersModule
         return services;
     }
 
-    private static IServiceCollection ConfigureBackgroundJobs(this IServiceCollection services,
+    private static void ConfigureBackgroundJobs(this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.Configure<OutboxOptions>(configuration.GetSection("Users:Outbox"));
+        services.Configure<UserModuleOutboxOptions>(configuration.GetSection("Users:Outbox"));
         services.ConfigureOptions<ConfigureProcessOutboxJob>();
-
-        return services;
     }
 }

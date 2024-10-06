@@ -12,13 +12,13 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Quartz;
 
-namespace Evently.Modules.Users.Infrastructure.Outbox;
+namespace Evently.Modules.Ticketing.Infrastructure.Outbox;
 
 [DisallowConcurrentExecution]
 internal sealed class ProcessOutboxJob(
        IServiceScopeFactory serviceScopeFactory,
        IDateTimeProvider dateTimeProvider,
-       IOptions<UserModuleOutboxOptions> outboxOptions,
+       IOptions<TicketingModuleOutboxOptions> outboxOptions,
        ILogger<ProcessOutboxJob> logger
     ) : IJob
 {

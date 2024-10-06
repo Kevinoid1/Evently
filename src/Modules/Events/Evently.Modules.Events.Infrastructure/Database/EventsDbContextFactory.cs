@@ -8,10 +8,12 @@ internal sealed class EventsDbContextFactory : IDesignTimeDbContextFactory<Event
 {
     public EventsDbContext CreateDbContext(string[] args)
     {
-        string connectionString = "Host=evently.database;Port=5432;Database=evently;Username=postgres;Password=sqluser10$;Include Error Detail=true";
+        string connectionString = "Host=localhost;Port=5433;Database=evently;Username=postgres;Password=sqluser10$;Include Error Detail=true";
         DbContextOptionsBuilder<EventsDbContext> optionBuilder = new();
 
         optionBuilder.UseNpgsql(connectionString);
+
+        optionBuilder.UseSnakeCaseNamingConvention();
 
         return new EventsDbContext(optionBuilder.Options);
     }

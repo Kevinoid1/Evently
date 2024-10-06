@@ -3,9 +3,9 @@ using Quartz;
 
 namespace Evently.Modules.Users.Infrastructure.Outbox;
 
-internal sealed class ConfigureProcessOutboxJob(IOptions<OutboxOptions> outboxOptions) : IConfigureOptions<QuartzOptions>
+internal sealed class ConfigureProcessOutboxJob(IOptions<UserModuleOutboxOptions> outboxOptions) : IConfigureOptions<QuartzOptions>
 {
-    private readonly OutboxOptions _outboxOptions = outboxOptions.Value;
+    private readonly UserModuleOutboxOptions _userModuleOutboxOptions = outboxOptions.Value;
 
     public void Configure(QuartzOptions options)
     {
@@ -13,7 +13,7 @@ internal sealed class ConfigureProcessOutboxJob(IOptions<OutboxOptions> outboxOp
 
         options.AddJob<ProcessOutboxJob>(builder => builder.WithIdentity(jobName))
             .AddTrigger(triggerBuilder => triggerBuilder.ForJob(jobName)
-                .WithSimpleSchedule(schedule => schedule.WithIntervalInSeconds(_outboxOptions.IntervalInSeconds)
+                .WithSimpleSchedule(schedule => schedule.WithIntervalInSeconds(_userModuleOutboxOptions.IntervalInSeconds)
                     .RepeatForever()));
     }
 }

@@ -1,4 +1,5 @@
-﻿using Evently.Modules.Events.Application.Abstraction.Data;
+﻿using Evently.Common.Infrastructure.Outbox;
+using Evently.Modules.Events.Application.Abstraction.Data;
 using Evently.Modules.Events.Domain.Categories;
 using Evently.Modules.Events.Domain.Events;
 using Evently.Modules.Events.Domain.TicketTypes;
@@ -21,5 +22,6 @@ public sealed class EventsDbContext(DbContextOptions<EventsDbContext> options) :
         
         modelBuilder.ApplyConfiguration(new EventConfiguration());
         modelBuilder.ApplyConfiguration(new TicketTypeConfiguration());
+        modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
     }
 }

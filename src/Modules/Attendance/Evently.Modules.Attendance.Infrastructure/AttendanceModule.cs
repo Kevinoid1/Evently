@@ -9,7 +9,12 @@ using Evently.Modules.Attendance.Infrastructure.Attendees;
 using Evently.Modules.Attendance.Infrastructure.Authentication;
 using Evently.Modules.Attendance.Infrastructure.Database;
 using Evently.Modules.Attendance.Infrastructure.Events;
+using Evently.Modules.Attendance.Infrastructure.Outbox;
 using Evently.Modules.Attendance.Infrastructure.Tickets;
+using Evently.Modules.Attendance.Presentation.Attendees;
+using Evently.Modules.Attendance.Presentation.Events;
+using Evently.Modules.Attendance.Presentation.Tickets;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
@@ -26,8 +31,18 @@ public static class AttendanceModule
         services.AddInfrastructure(configuration);
 
         services.AddEndpoints(Presentation.AssemblyMarker.Assembly);
+        
+        services.ConfigureBackgroundJobs(configuration);
 
         return services;
+    }
+    
+    public static void ConfigureConsumers(IRegistrationConfigurator registrationConfigurator)
+    {
+        registrationConfigurator.AddConsumer<UserRegisteredIntegrationEventConsumer>();
+        registrationConfigurator.AddConsumer<UserProfileUpdatedIntegrationEventConsumer>();
+        registrationConfigurator.AddConsumer<EventPublishedIntegrationEventConsumer>();
+        registrationConfigurator.AddConsumer<TicketIssuedIntegrationEventConsumer>();
     }
 
     private static void AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
@@ -48,5 +63,12 @@ public static class AttendanceModule
         services.AddScoped<ITicketRepository, TicketRepository>();
 
         services.AddScoped<IAttendanceContext, AttendanceContext>();
+    }
+    
+    private static void ConfigureBackgroundJobs(this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services.Configure<AttendanceModuleOutboxOptions>(configuration.GetSection("Attendance:Outbox"));
+        services.ConfigureOptions<ConfigureProcessOutboxJob>();
     }
 }
