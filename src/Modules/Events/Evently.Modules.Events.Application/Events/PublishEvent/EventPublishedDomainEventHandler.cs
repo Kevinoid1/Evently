@@ -9,9 +9,9 @@ using MediatR;
 
 namespace Evently.Modules.Events.Application.Events.PublishEvent;
 
-internal sealed class EventPublishedDomainEventHandler(ISender sender, IEventBus eventBus) : IDomainEventHandler<EventPublishedDomainEvent>
+internal sealed class EventPublishedDomainEventHandler(ISender sender, IEventBus eventBus) : DomainEventHandler<EventPublishedDomainEvent>
 {
-    public async Task Handle(EventPublishedDomainEvent domainEvent, CancellationToken cancellationToken)
+    public override async Task Handle(EventPublishedDomainEvent domainEvent, CancellationToken cancellationToken = default)
     {
         Result<EventResponse> eventResult = await sender.Send(new GetEventQuery(domainEvent.EventId), cancellationToken);
 

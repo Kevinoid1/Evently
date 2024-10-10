@@ -1,4 +1,5 @@
 ﻿using Evently.Common.Application.Authorization;
+using Evently.Common.Application.Messaging;
 using Evently.Common.Infrastructure.Interceptors;
 using Evently.Common.Presentation.Endpoints;
 using Evently.Modules.Users.Application.Abstractions.Data;
@@ -13,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace Evently.Modules.Users.Infrastructure;
@@ -51,6 +53,8 @@ public static class UsersModule
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<UsersDbContext>());
 
         services.AddScoped<IPermissionService, PermissionService>();
+        
+        services.AddDomainEventHandlers();
     }
 
     private static IServiceCollection ConfigureKeyCloak(this IServiceCollection services, IConfiguration configuration)
@@ -75,5 +79,26 @@ public static class UsersModule
     {
         services.Configure<UserModuleOutboxOptions>(configuration.GetSection("Users:Outbox"));
         services.ConfigureOptions<ConfigureProcessOutboxJob>();
+    }
+
+    private static void AddDomainEventHandlers(this IServiceCollection services)
+    {
+        Type[] domainEventHandlers = Application.AssemblyMarker.Assembly.GetTypes()
+            .Where(t => t.IsAssignableTo(typeof(IDomainEventHandler))).ToArray(); // gets all the domain event handlers that assignable to IDomainEventHandler
+
+        foreach (Type domainEventHandler in domainEventHandlers)
+        {
+            services.TryAddScoped(domainEventHandler);
+
+            Type domainEvent = domainEventHandler.GetInterfaces()
+                .Single(@interface => @interface.IsGenericType)
+                .GetGenericArguments()
+                .Single();  // this gives me the domain event which is the generic parameter
+            
+            Type idempotentDomainEventHandler = typeof(IdempotentDomainEventHandler<>).MakeGenericType(domainEvent);
+            
+            // from scrutor
+            services.Decorate(domainEventHandler, idempotentDomainEventHandler);
+        }
     }
 }

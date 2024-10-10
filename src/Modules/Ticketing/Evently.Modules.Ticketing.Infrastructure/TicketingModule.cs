@@ -1,4 +1,5 @@
-﻿using Evently.Common.Infrastructure.Interceptors;
+﻿using Evently.Common.Application.Messaging;
+using Evently.Common.Infrastructure.Interceptors;
 using Evently.Common.Presentation.Endpoints;
 using Evently.Modules.Ticketing.Application.Abstractions.Authentication;
 using Evently.Modules.Ticketing.Application.Abstractions.Data;
@@ -25,6 +26,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Evently.Modules.Ticketing.Infrastructure;
 
@@ -75,6 +77,8 @@ public static class TicketingModule
         services.AddSingleton<IPaymentService, PaymentService>();
 
         services.AddScoped<ICustomerContext, CustomerContext>();
+        
+        services.AddDomainEventHandlers();
     }
     
     private static void ConfigureBackgroundJobs(this IServiceCollection services,
@@ -82,5 +86,26 @@ public static class TicketingModule
     {
         services.Configure<TicketingModuleOutboxOptions>(configuration.GetSection("Ticketing:Outbox"));
         services.ConfigureOptions<ConfigureProcessOutboxJob>();
+    }
+    
+    private static void AddDomainEventHandlers(this IServiceCollection services)
+    {
+        Type[] domainEventHandlers = Application.AssemblyMarker.Assembly.GetTypes()
+            .Where(t => t.IsAssignableTo(typeof(IDomainEventHandler))).ToArray(); // gets all the domain event handlers that assignable to IDomainEventHandler
+
+        foreach (Type domainEventHandler in domainEventHandlers)
+        {
+            services.TryAddScoped(domainEventHandler);
+
+            Type domainEvent = domainEventHandler.GetInterfaces()
+                .Single(@interface => @interface.IsGenericType)
+                .GetGenericArguments()
+                .Single();  // this gives me the domain event which is the generic parameter
+            
+            Type idempotentDomainEventHandler = typeof(IdempotentDomainEventHandler<>).MakeGenericType(domainEvent);
+            
+            // from scrutor
+            services.Decorate(domainEventHandler, idempotentDomainEventHandler);
+        }
     }
 }

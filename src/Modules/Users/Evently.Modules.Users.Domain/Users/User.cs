@@ -1,5 +1,4 @@
-﻿using System.Security.AccessControl;
-using Evently.Common.Domain.Abstractions;
+﻿using Evently.Common.Domain.Abstractions;
 
 namespace Evently.Modules.Users.Domain.Users;
 

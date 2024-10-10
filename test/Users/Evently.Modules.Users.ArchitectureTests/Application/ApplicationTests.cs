@@ -1,6 +1,5 @@
 using Evently.Common.Application.Messaging;
 using Evently.Modules.Users.ArchitectureTests.Abstractions;
-using FluentAssertions;
 using FluentValidation;
 using NetArchTest.Rules;
 

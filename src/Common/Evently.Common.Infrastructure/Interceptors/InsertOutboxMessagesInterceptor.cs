@@ -1,12 +1,7 @@
-using System.Text.Json;
 using Evently.Common.Domain.Abstractions;
 using Evently.Common.Infrastructure.Outbox;
-using Evently.Common.Infrastructure.Serialization;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 
 namespace Evently.Common.Infrastructure.Interceptors;
 
@@ -48,13 +43,7 @@ public sealed class InsertOutboxMessagesInterceptor : SaveChangesInterceptor
                 entity.ClearDomainEvents();
                 return events;
             })
-            .Select(domainEvent => new OutboxMessage
-            {
-                Id = domainEvent.Id,
-                OccuredOnUtc = domainEvent.OccurredOnUtc,
-                Type = domainEvent.GetType().Name,
-                Content = JsonConvert.SerializeObject(domainEvent, SerializerSettings.Instance)
-            })
+            .Select(domainEvent => OutboxMessage.Create(domainEvent))
             .ToList();
         
         context.Set<OutboxMessage>().AddRange(outboxMessages);

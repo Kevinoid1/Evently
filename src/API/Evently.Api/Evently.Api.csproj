@@ -44,6 +44,9 @@
     <Content Update="modules.ticketing.Development.json">
       <DependentUpon>modules.ticketing.json</DependentUpon>
     </Content>
+    <Content Update="modules.attendance.Development.json">
+      <DependentUpon>modules.attendance.json</DependentUpon>
+    </Content>
   </ItemGroup>
 
 </Project>

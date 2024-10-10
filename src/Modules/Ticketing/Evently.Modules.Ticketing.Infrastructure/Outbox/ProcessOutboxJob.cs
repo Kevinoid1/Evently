@@ -3,9 +3,9 @@ using System.Data.Common;
 using Dapper;
 using Evently.Common.Application.Clock;
 using Evently.Common.Application.Data;
+using Evently.Common.Application.Messaging;
 using Evently.Common.Domain.Abstractions;
 using Evently.Common.Infrastructure.Serialization;
-using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -23,7 +23,7 @@ internal sealed class ProcessOutboxJob(
     ) : IJob
 {
     
-    private const string ModuleName = "Users";
+    private const string ModuleName = "Ticketing";
     
     public async Task Execute(IJobExecutionContext context)
     {
@@ -31,7 +31,7 @@ internal sealed class ProcessOutboxJob(
         
         using IServiceScope scope = serviceScopeFactory.CreateScope();
         IDbConnectionFactory dbConnectionFactory = scope.ServiceProvider.GetRequiredService<IDbConnectionFactory>();
-        IPublisher publisher = scope.ServiceProvider.GetRequiredService<IPublisher>();
+        IDomainEventPublisher publisher = scope.ServiceProvider.GetRequiredService<IDomainEventPublisher>();
         
         await using DbConnection connection = await dbConnectionFactory.OpenConnectionAsync();
         await using DbTransaction transaction = await connection.BeginTransactionAsync();
@@ -47,7 +47,7 @@ internal sealed class ProcessOutboxJob(
                 IDomainEvent domainEvent =
                     JsonConvert.DeserializeObject<IDomainEvent>(outboxMessage.Content, SerializerSettings.Instance)!;
                 
-                await publisher.Publish(domainEvent);
+                await publisher.PublishAsync(domainEvent, Application.AssemblyMarker.Assembly, context.CancellationToken);
             }
             catch (Exception ex)
             {
