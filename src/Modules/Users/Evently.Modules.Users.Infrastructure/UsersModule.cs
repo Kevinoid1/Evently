@@ -1,4 +1,5 @@
 ﻿using Evently.Common.Application.Authorization;
+using Evently.Common.Application.EventBus;
 using Evently.Common.Application.Messaging;
 using Evently.Common.Infrastructure.Interceptors;
 using Evently.Common.Presentation.Endpoints;
@@ -8,6 +9,7 @@ using Evently.Modules.Users.Domain.Users;
 using Evently.Modules.Users.Infrastructure.Authorization;
 using Evently.Modules.Users.Infrastructure.Database;
 using Evently.Modules.Users.Infrastructure.Identity;
+using Evently.Modules.Users.Infrastructure.Inbox;
 using Evently.Modules.Users.Infrastructure.Outbox;
 using Evently.Modules.Users.Infrastructure.Users;
 using Microsoft.EntityFrameworkCore;
@@ -55,6 +57,8 @@ public static class UsersModule
         services.AddScoped<IPermissionService, PermissionService>();
         
         services.AddDomainEventHandlers();
+        
+        services.AddIntegrationEventHandlers();
     }
 
     private static IServiceCollection ConfigureKeyCloak(this IServiceCollection services, IConfiguration configuration)
@@ -79,6 +83,8 @@ public static class UsersModule
     {
         services.Configure<UserModuleOutboxOptions>(configuration.GetSection("Users:Outbox"));
         services.ConfigureOptions<ConfigureProcessOutboxJob>();
+        services.Configure<UserModuleInboxOptions>(configuration.GetSection("Users:Inbox"));
+        services.ConfigureOptions<ConfigureProcessInboxJob>();
     }
 
     private static void AddDomainEventHandlers(this IServiceCollection services)
@@ -98,7 +104,29 @@ public static class UsersModule
             Type idempotentDomainEventHandler = typeof(IdempotentDomainEventHandler<>).MakeGenericType(domainEvent);
             
             // from scrutor
-            services.Decorate(domainEventHandler, idempotentDomainEventHandler);
+            services.Decorate(domainEventHandler, idempotentDomainEventHandler); // decorating the domain event handler type with IdempotentDomainEventHandler
+        }
+    }
+    
+    
+    private static void AddIntegrationEventHandlers(this IServiceCollection services)
+    {
+        Type[] integrationEventHandlers = Presentation.AssemblyMarker.Assembly.GetTypes()
+            .Where(t => t.IsAssignableTo(typeof(IIntegrationEventHandler))).ToArray(); // gets all the integration event handlers that assignable to IIntegrationEventHandler
+
+        foreach (Type integrationEventHandler in integrationEventHandlers)
+        {
+            services.TryAddScoped(integrationEventHandler);
+
+            Type integrationEvent = integrationEventHandler.GetInterfaces()
+                .Single(@interface => @interface.IsGenericType)
+                .GetGenericArguments()
+                .Single();  // this gives me the integration event which is the generic parameter
+            
+            Type idempotentIntegrationEventHandler = typeof(IdempotentIntegrationEventHandler<>).MakeGenericType(integrationEvent);
+            
+            // from scrutor
+            services.Decorate(integrationEventHandler, idempotentIntegrationEventHandler); // decorating the integration event handler type with IdempotentIntegrationEventHandler
         }
     }
 }

@@ -29,10 +29,4 @@ public sealed class OutboxMessage
 
         return outboxMessage;
     }
-
-    public void MarkAsProcessed(DateTime processedOnUtc, string? error = null)
-    {
-        ProcessedOnUtc = processedOnUtc;
-        Error = error;
-    }
 }

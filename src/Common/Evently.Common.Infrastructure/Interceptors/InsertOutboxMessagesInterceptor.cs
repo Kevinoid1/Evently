@@ -7,7 +7,6 @@ namespace Evently.Common.Infrastructure.Interceptors;
 
 public sealed class InsertOutboxMessagesInterceptor : SaveChangesInterceptor
 {
-#pragma warning disable S125
     /*
      // called after saving changes to the database
     public override async ValueTask<int> SavedChangesAsync(SaveChangesCompletedEventData eventData, int result,
@@ -20,16 +19,15 @@ public sealed class InsertOutboxMessagesInterceptor : SaveChangesInterceptor
         return await base.SavedChangesAsync(eventData, result, cancellationToken);
     }
     */
-#pragma warning restore S125
 
     // called before saving changes to the database
-    public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
+    public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {
         if (eventData.Context != null)
         {
             SaveDomainEventsAsOutboxMessages(eventData.Context);
         }
-        return base.SavingChanges(eventData, result);
+        return await base.SavingChangesAsync(eventData, result, cancellationToken);
     }
 
     private static void SaveDomainEventsAsOutboxMessages(DbContext context)
@@ -47,8 +45,7 @@ public sealed class InsertOutboxMessagesInterceptor : SaveChangesInterceptor
             .ToList();
         
         context.Set<OutboxMessage>().AddRange(outboxMessages);
-
-#pragma warning disable S125
+        
         /*var domainEvents = context.ChangeTracker
             .Entries<Entity>()
             .Select(entry => entry.Entity)
@@ -66,6 +63,6 @@ public sealed class InsertOutboxMessagesInterceptor : SaveChangesInterceptor
         {
             await publisher.Publish(domainEvent);
         }*/
-#pragma warning restore S125
+
     }
 }

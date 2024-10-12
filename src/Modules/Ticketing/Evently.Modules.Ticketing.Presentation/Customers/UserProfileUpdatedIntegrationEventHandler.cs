@@ -1,21 +1,21 @@
+using Evently.Common.Application.EventBus;
 using Evently.Common.Application.Exceptions;
 using Evently.Common.Domain.Abstractions;
 using Evently.Modules.Ticketing.Application.Customers.UpdateCustomer;
 using Evently.Modules.Users.IntegrationEvents;
-using MassTransit;
 using MediatR;
 
 namespace Evently.Modules.Ticketing.Presentation.Customers;
 
-public sealed class UserProfileUpdatedIntegrationEventConsumer(ISender sender) : IConsumer<UserProfileUpdatedIntegrationEvent>
+public sealed class UserProfileUpdatedIntegrationEventHandler(ISender sender) : IntegrationEventHandler<UserProfileUpdatedIntegrationEvent>
 {
-    public async Task Consume(ConsumeContext<UserProfileUpdatedIntegrationEvent> context)
+    public override async Task Handle(UserProfileUpdatedIntegrationEvent integrationEvent, CancellationToken cancellationToken = default)
     {
         Result result = await sender.Send(
             new UpdateCustomerCommand(
-                context.Message.UserId,
-                context.Message.FirstName,
-                context.Message.LastName), context.CancellationToken);
+               integrationEvent.UserId,
+               integrationEvent.FirstName,
+               integrationEvent.LastName), cancellationToken);
 
         if (result.IsFailure)
         {

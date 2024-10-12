@@ -1,4 +1,5 @@
-﻿using Evently.Common.Application.Messaging;
+﻿using Evently.Common.Application.EventBus;
+using Evently.Common.Application.Messaging;
 using Evently.Common.Infrastructure.Interceptors;
 using Evently.Common.Presentation.Endpoints;
 using Evently.Modules.Events.Application.Abstraction.Data;
@@ -8,6 +9,7 @@ using Evently.Modules.Events.Domain.TicketTypes;
 using Evently.Modules.Events.Infrastructure.Categories;
 using Evently.Modules.Events.Infrastructure.Database;
 using Evently.Modules.Events.Infrastructure.Events;
+using Evently.Modules.Events.Infrastructure.Inbox;
 using Evently.Modules.Events.Infrastructure.Outbox;
 using Evently.Modules.Events.Infrastructure.TicketTypes;
 using Microsoft.EntityFrameworkCore;
@@ -54,6 +56,8 @@ public static class EventsModule
         
         services.AddDomainEventHandlers();
         
+        services.AddIntegrationEventHandlers();
+        
         return services;
     }
     
@@ -61,7 +65,9 @@ public static class EventsModule
         IConfiguration configuration)
     {
         services.Configure<EventsModuleOutboxOptions>(configuration.GetSection("Events:Outbox"));
-        services.ConfigureOptions<ConfigureProcessOutboxJob>();
+        services.ConfigureOptions<ConfigureProcessOutboxJob>(); 
+        services.Configure<EventsModuleInboxOptions>(configuration.GetSection("Events:Inbox"));
+        services.ConfigureOptions<ConfigureProcessInboxJob>();
     }
     
     private static void AddDomainEventHandlers(this IServiceCollection services)
@@ -82,6 +88,27 @@ public static class EventsModule
             
             // from scrutor
             services.Decorate(domainEventHandler, idempotentDomainEventHandler);
+        }
+    }
+    
+    private static void AddIntegrationEventHandlers(this IServiceCollection services)
+    {
+        Type[] integrationEventHandlers = Presentation.AssemblyMarker.Assembly.GetTypes()
+            .Where(t => t.IsAssignableTo(typeof(IIntegrationEventHandler))).ToArray(); // gets all the integration event handlers that assignable to IIntegrationEventHandler
+
+        foreach (Type integrationEventHandler in integrationEventHandlers)
+        {
+            services.TryAddScoped(integrationEventHandler);
+
+            Type integrationEvent = integrationEventHandler.GetInterfaces()
+                .Single(@interface => @interface.IsGenericType)
+                .GetGenericArguments()
+                .Single();  // this gives me the integration event which is the generic parameter
+            
+            Type idempotentIntegrationEventHandler = typeof(IdempotentIntegrationEventHandler<>).MakeGenericType(integrationEvent);
+            
+            // from scrutor
+            services.Decorate(integrationEventHandler, idempotentIntegrationEventHandler); // decorating the integration event handler type with IdempotentIntegrationEventHandler
         }
     }
 }

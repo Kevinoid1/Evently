@@ -1,4 +1,5 @@
-﻿using Evently.Common.Infrastructure.Outbox;
+﻿using Evently.Common.Infrastructure.Inbox;
+using Evently.Common.Infrastructure.Outbox;
 using Evently.Modules.Attendance.Application.Abstractions.Data;
 using Evently.Modules.Attendance.Domain.Attendees;
 using Evently.Modules.Attendance.Domain.Events;
@@ -28,5 +29,7 @@ public sealed class AttendanceDbContext(DbContextOptions<AttendanceDbContext> op
         modelBuilder.ApplyConfiguration(new TicketConfiguration());
         modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
         modelBuilder.ApplyConfiguration(new OutboxMessageConsumerConfiguration());
+        modelBuilder.ApplyConfiguration(new InboxMessageConfiguration());
+        modelBuilder.ApplyConfiguration(new InboxMessageConsumerConfiguration());
     }
 }

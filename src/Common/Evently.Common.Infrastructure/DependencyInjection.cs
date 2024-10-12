@@ -38,7 +38,7 @@ public static class DependencyInjection
         services.TryAddSingleton<InsertOutboxMessagesInterceptor>();
         
         // register my custom publisher
-        services.TryAddScoped<IDomainEventPublisher, DomainEventPublisher>();
+        services.TryAddScoped<IEventPublisher, EventPublisher>();
 
         services
             .ConfigureCaching(redisConnectionString)

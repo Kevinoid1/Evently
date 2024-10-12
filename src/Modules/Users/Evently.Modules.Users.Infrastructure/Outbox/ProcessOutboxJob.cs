@@ -31,7 +31,7 @@ internal sealed class ProcessOutboxJob(
         
         using IServiceScope scope = serviceScopeFactory.CreateScope();
         IDbConnectionFactory dbConnectionFactory = scope.ServiceProvider.GetRequiredService<IDbConnectionFactory>();
-        IDomainEventPublisher publisher = scope.ServiceProvider.GetRequiredService<IDomainEventPublisher>();
+        IEventPublisher publisher = scope.ServiceProvider.GetRequiredService<IEventPublisher>();
         
         await using DbConnection connection = await dbConnectionFactory.OpenConnectionAsync();
         await using DbTransaction transaction = await connection.BeginTransactionAsync();
@@ -47,7 +47,7 @@ internal sealed class ProcessOutboxJob(
                 IDomainEvent domainEvent =
                     JsonConvert.DeserializeObject<IDomainEvent>(outboxMessage.Content, SerializerSettings.Instance)!;
                 
-                await publisher.PublishAsync(domainEvent, Application.AssemblyMarker.Assembly, context.CancellationToken);
+                await publisher.PublishDomainEventAsync(domainEvent, Application.AssemblyMarker.Assembly, context.CancellationToken);
             }
             catch (Exception ex)
             {
@@ -74,7 +74,7 @@ internal sealed class ProcessOutboxJob(
                 content AS {nameof(OutboxMessageResponse.Content)}
              FROM users.outbox_messages
              WHERE processed_on_utc IS NULL
-             ORDER BY occurred_on_utc
+             ORDER BY occured_on_utc
              LIMIT {outboxOptions.Value.BatchSize}
              FOR UPDATE
              """;

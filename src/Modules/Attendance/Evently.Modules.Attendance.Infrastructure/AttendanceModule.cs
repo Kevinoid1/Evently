@@ -1,4 +1,5 @@
-﻿using Evently.Common.Application.Messaging;
+﻿using Evently.Common.Application.EventBus;
+using Evently.Common.Application.Messaging;
 using Evently.Common.Infrastructure.Interceptors;
 using Evently.Common.Presentation.Endpoints;
 using Evently.Modules.Attendance.Application.Abstractions.Authentication;
@@ -10,11 +11,12 @@ using Evently.Modules.Attendance.Infrastructure.Attendees;
 using Evently.Modules.Attendance.Infrastructure.Authentication;
 using Evently.Modules.Attendance.Infrastructure.Database;
 using Evently.Modules.Attendance.Infrastructure.Events;
+using Evently.Modules.Attendance.Infrastructure.Inbox;
 using Evently.Modules.Attendance.Infrastructure.Outbox;
 using Evently.Modules.Attendance.Infrastructure.Tickets;
-using Evently.Modules.Attendance.Presentation.Attendees;
-using Evently.Modules.Attendance.Presentation.Events;
-using Evently.Modules.Attendance.Presentation.Tickets;
+using Evently.Modules.Events.IntegrationEvents;
+using Evently.Modules.Ticketing.IntegrationEvents;
+using Evently.Modules.Users.IntegrationEvents;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -41,10 +43,19 @@ public static class AttendanceModule
     
     public static void ConfigureConsumers(IRegistrationConfigurator registrationConfigurator)
     {
-        registrationConfigurator.AddConsumer<UserRegisteredIntegrationEventConsumer>();
+        registrationConfigurator.AddConsumer<IntegrationEventConsumer<UserRegisteredIntegrationEvent>>();
+        registrationConfigurator.AddConsumer<IntegrationEventConsumer<UserProfileUpdatedIntegrationEvent>>();
+        registrationConfigurator.AddConsumer<IntegrationEventConsumer<EventPublishedIntegrationEvent>>();
+        registrationConfigurator.AddConsumer<IntegrationEventConsumer<TicketIssuedIntegrationEvent>>();
+
+        #region before inbox pattern
+
+        /*registrationConfigurator.AddConsumer<UserRegisteredIntegrationEventConsumer>();
         registrationConfigurator.AddConsumer<UserProfileUpdatedIntegrationEventConsumer>();
         registrationConfigurator.AddConsumer<EventPublishedIntegrationEventConsumer>();
-        registrationConfigurator.AddConsumer<TicketIssuedIntegrationEventConsumer>();
+        registrationConfigurator.AddConsumer<TicketIssuedIntegrationEventConsumer>();*/
+
+        #endregion
     }
 
     private static void AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
@@ -67,6 +78,8 @@ public static class AttendanceModule
         services.AddScoped<IAttendanceContext, AttendanceContext>();
         
         services.AddDomainEventHandlers();
+        
+        services.AddIntegrationEventHandlers();
     }
     
     private static void ConfigureBackgroundJobs(this IServiceCollection services,
@@ -74,6 +87,8 @@ public static class AttendanceModule
     {
         services.Configure<AttendanceModuleOutboxOptions>(configuration.GetSection("Attendance:Outbox"));
         services.ConfigureOptions<ConfigureProcessOutboxJob>();
+        services.Configure<AttendanceModuleInboxOptions>(configuration.GetSection("Attendance:Inbox"));
+        services.ConfigureOptions<ConfigureProcessInboxJob>();
     }
     
     private static void AddDomainEventHandlers(this IServiceCollection services)
@@ -94,6 +109,27 @@ public static class AttendanceModule
             
             // from scrutor
             services.Decorate(domainEventHandler, idempotentDomainEventHandler);
+        }
+    }
+    
+    private static void AddIntegrationEventHandlers(this IServiceCollection services)
+    {
+        Type[] integrationEventHandlers = Presentation.AssemblyMarker.Assembly.GetTypes()
+            .Where(t => t.IsAssignableTo(typeof(IIntegrationEventHandler))).ToArray(); // gets all the integration event handlers that assignable to IIntegrationEventHandler
+
+        foreach (Type integrationEventHandler in integrationEventHandlers)
+        {
+            services.TryAddScoped(integrationEventHandler);
+
+            Type integrationEvent = integrationEventHandler.GetInterfaces()
+                .Single(@interface => @interface.IsGenericType)
+                .GetGenericArguments()
+                .Single();  // this gives me the integration event which is the generic parameter
+            
+            Type idempotentIntegrationEventHandler = typeof(IdempotentIntegrationEventHandler<>).MakeGenericType(integrationEvent);
+            
+            // from scrutor
+            services.Decorate(integrationEventHandler, idempotentIntegrationEventHandler); // decorating the integration event handler type with IdempotentIntegrationEventHandler
         }
     }
 }

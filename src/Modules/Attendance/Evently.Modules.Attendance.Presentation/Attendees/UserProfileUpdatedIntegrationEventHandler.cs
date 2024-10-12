@@ -1,23 +1,23 @@
+using Evently.Common.Application.EventBus;
 using Evently.Common.Application.Exceptions;
 using Evently.Common.Domain.Abstractions;
 using Evently.Modules.Attendance.Application.Attendees.UpdateAttendee;
 using Evently.Modules.Users.IntegrationEvents;
-using MassTransit;
 using MediatR;
 
 namespace Evently.Modules.Attendance.Presentation.Attendees;
 
-public sealed class UserProfileUpdatedIntegrationEventConsumer(ISender sender)
-    : IConsumer<UserProfileUpdatedIntegrationEvent>
+public sealed class UserProfileUpdatedIntegrationEventHandler(ISender sender)
+    : IntegrationEventHandler<UserProfileUpdatedIntegrationEvent>
 {
-    public async Task Consume(ConsumeContext<UserProfileUpdatedIntegrationEvent> context)
+    public override async Task Handle(UserProfileUpdatedIntegrationEvent integrationEvent, CancellationToken cancellationToken = default)
     {
         Result result = await sender.Send(
             new UpdateAttendeeCommand(
-                context.Message.UserId,
-                context.Message.FirstName,
-                context.Message.LastName),
-            context.CancellationToken);
+               integrationEvent.UserId,
+               integrationEvent.FirstName,
+               integrationEvent.LastName),
+            cancellationToken);
 
         if (result.IsFailure)
         {
