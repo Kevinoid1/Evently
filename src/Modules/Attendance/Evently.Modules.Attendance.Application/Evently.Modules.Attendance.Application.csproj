@@ -3,4 +3,8 @@
     <ProjectReference Include="..\..\..\Common\Evently.Common.Application\Evently.Common.Application.csproj" />
     <ProjectReference Include="..\Evently.Modules.Attendance.Domain\Evently.Modules.Attendance.Domain.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="EventStatistics\GetEventStatistics\" />
+    <Folder Include="EventStatistics\Projections\" />
+  </ItemGroup>
 </Project>

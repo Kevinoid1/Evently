@@ -43,6 +43,7 @@ builder.Services
     Evently.Modules.Attendance.Application.AssemblyMarker.Assembly,
 ])
     .AddInfrastructure([
+        EventsModule.ConfigureConsumers(redisConnectionString),
         AttendanceModule.ConfigureConsumers,
         TicketingModule.ConfigureConsumers
     ],

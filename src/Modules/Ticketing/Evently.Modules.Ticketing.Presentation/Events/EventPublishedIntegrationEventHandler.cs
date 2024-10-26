@@ -3,7 +3,6 @@ using Evently.Common.Application.Exceptions;
 using Evently.Common.Domain.Abstractions;
 using Evently.Modules.Events.IntegrationEvents;
 using Evently.Modules.Ticketing.Application.Events.CreateEvent;
-using MassTransit;
 using MediatR;
 
 namespace Evently.Modules.Ticketing.Presentation.Events;
