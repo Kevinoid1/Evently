@@ -20,7 +20,7 @@ public sealed class User : Entity
 
     public IReadOnlyList<Role> Roles => _roles.ToList().AsReadOnly();
 
-    public static User Create(string email, string firstName, string lastName, string identityId)
+    public static User Create(string email, string firstName, string lastName, string identityId, bool isAdmin = false)
     {
         var user = new User
         {
@@ -31,7 +31,7 @@ public sealed class User : Entity
             IdentityId = identityId
         };
 
-        user._roles.Add(Role.Member);
+        user._roles.Add(isAdmin ? Role.Administrator : Role.Member);
         user.Raise(new UserRegisteredDomainEvent(user.Id));
 
         return user;

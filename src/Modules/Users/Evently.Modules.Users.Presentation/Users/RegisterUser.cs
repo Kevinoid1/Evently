@@ -25,6 +25,19 @@ internal sealed class RegisterUser : IEndpoint
         })
         .AllowAnonymous()
         .WithTags(Tags.Users);
+        
+        app.MapPost("users/register_admin", async (Request request, ISender sender) =>
+            {
+                Result<Guid> result = await sender.Send(new RegisterAdminUserCommand(
+                    request.Email,
+                    request.Password,
+                    request.FirstName,
+                    request.LastName));
+
+                return result.Match(Results.Ok, ApiResults.Problem);
+            })
+            .AllowAnonymous()
+            .WithTags(Tags.Users);
     }
 
     internal sealed class Request

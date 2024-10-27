@@ -58,6 +58,15 @@ public sealed class CancelEventSaga : MassTransitStateMachine<CancelEventState>
             When(EventPaymentRefunded)
                 .TransitionTo(PaymentRefunded)); // transition to payment refunded when an event payment refunded event is published when in a tickets archived state
         
+        /*During(CancellationStarted,
+            When(EventPaymentRefunded)
+                .Then(context => context.Saga.CancellationCompletedStatus |= 1)
+                .TransitionTo(PaymentRefunded), // Track event completion    0001
+            When(EventTicketsArchived)
+                .Then(context => context.Saga.CancellationCompletedStatus |= 2)
+                .TransitionTo(TicketsArchived)// Track event completion with bitwise OR operation 0010   when both events occur it will be 0001 | 0010 = 0011 (3)
+        );*/
+        
         // define a composite event which will mark the completion of the saga
         CompositeEvent(
             () => EventCancellationCompleted,

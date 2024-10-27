@@ -17,7 +17,7 @@ internal sealed class IdempotentDomainEventHandler<TDomainEvent>(
     {
         await using DbConnection connection = await dbConnectionFactory.OpenConnectionAsync();
         
-        var outboxMessageConsumer = OutboxMessageConsumer.Create(domainEvent.Id, typeof(TDomainEvent).Name);
+        var outboxMessageConsumer = OutboxMessageConsumer.Create(domainEvent.Id, decoratedHandler.GetType().Name);
 
         if (await OutboxMessageConsumerExistsAsync(connection, outboxMessageConsumer))
         {
