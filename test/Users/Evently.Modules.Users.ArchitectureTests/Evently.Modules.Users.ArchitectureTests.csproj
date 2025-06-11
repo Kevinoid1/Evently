@@ -8,6 +8,10 @@
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
     </PropertyGroup>
+    
+    <PropertyGroup>
+        <NoWarn>$(NoWarn);CA1515</NoWarn>
+    </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="FluentAssertions" Version="6.12.1" />

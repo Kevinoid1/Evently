@@ -1,4 +1,4 @@
-{
+  {
   "Attendance": {
     "Outbox":{
       "IntervalInSeconds": 20,
